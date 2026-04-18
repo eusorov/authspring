@@ -58,7 +58,7 @@ public class EmailVerificationService {
         String token = jwtService.createToken(user);
         personalAccessTokenService.recordLoginToken(user, token);
         String url = buildRedirectUrl(user, token);
-        return new EmailVerificationOutcome.RedirectToFrontend(user, url);
+        return new EmailVerificationOutcome.RedirectToFrontend(url);
     }
 
     private String buildRedirectUrl(User user, String token) {

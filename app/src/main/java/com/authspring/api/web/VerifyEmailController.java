@@ -25,7 +25,7 @@ public class VerifyEmailController {
     public ResponseEntity<?> verify(
             HttpServletRequest request, @PathVariable Long id, @PathVariable String hash) {
         return switch (emailVerificationService.verify(request, id, hash)) {
-            case EmailVerificationOutcome.RedirectToFrontend(var u, var url) ->
+            case EmailVerificationOutcome.RedirectToFrontend(var url) ->
                     ResponseEntity.status(HttpStatus.FOUND).header(HttpHeaders.LOCATION, url).build();
             case EmailVerificationOutcome.InvalidOrExpiredLink() ->
                     ResponseEntity.status(HttpStatus.FORBIDDEN).build();
