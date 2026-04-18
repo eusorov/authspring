@@ -2,6 +2,7 @@ plugins {
     id 'java'
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.dependency.management)
+    id 'org.sonarqube' version '7.2.3.7755'
 }
 
 group = 'com.authspring'
@@ -43,6 +44,14 @@ dependencies {
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+sonar {
+    properties {
+        property 'sonar.projectKey', 'authspring'
+        property 'sonar.organization', 'authspring'
+        property 'sonar.host.url', 'http://localhost:9000'
     }
 }
 
