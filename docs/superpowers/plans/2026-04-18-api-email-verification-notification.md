@@ -4,7 +4,7 @@
 
 **Goal:** Add **`POST /api/email/verification-notification`** matching `routes/auth.php` (`verification.send.api`) and `EmailVerificationNotificationController::store`: **JWT-authenticated** (Laravel `auth:sanctum` equivalent), **409** when the user is already verified, **200** `{"status":"verification-link-sent"}` after sending the verification email, plus **in-process rate limiting** aligned with Laravel `throttle:6,1` (six attempts per rolling minute per authenticated user).
 
-**Architecture:** A **`LaravelSignedUrlSigner`** builds the same **absolute** signed URL string that **`LaravelSignedUrlValidator`** validates on **`GET /api/verify-email/{id}/{hash}`** (HMAC-SHA256 over `scheme + host + path + ?expires=...` without `signature`, then append `&signature=`). Mail content follows **`VerifyEmailApi`** / `config/mail_templates.php` **`verification`** block, mirrored as **`VerificationMailProperties`** + **`EmailVerificationMailSender`** (plain text body with action URL, same UTF-8 pattern as **`PasswordResetEmailSender`**). **`EmailVerificationNotificationService`** loads the current **`User`**, branches on **`emailVerifiedAt`**, applies **`VerificationNotificationRateLimiter`**, and delegates send.
+**Architecture:** A **`LaravelSignedUrlSigner`** builds the same **absolute** signed URL string that **`LaravelSignedUrlValidator`** validates on **`GET /api/email/verify/{id}/{hash}`** (HMAC-SHA256 over `scheme + host + path + ?expires=...` without `signature`, then append `&signature=`). Path `{hash}` is **`EmailVerificationHashes.sha256Hex(email)`** (SHA-256, lowercase hex), not Laravel’s `sha1($email)`. Mail content follows **`VerifyEmailApi`** / `config/mail_templates.php` **`verification`** block, mirrored as **`VerificationMailProperties`** + **`EmailVerificationMailSender`** (plain text body with action URL, same UTF-8 pattern as **`PasswordResetEmailSender`**). **`EmailVerificationNotificationService`** loads the current **`User`**, branches on **`emailVerifiedAt`**, applies **`VerificationNotificationRateLimiter`**, and delegates send.
 
 **Tech stack:** Spring Boot 4, Spring Security JWT (`UserPrincipal`), `JavaMailSender`, existing `VerificationProperties` (extended), `UserRepository`, MockMvc + Testcontainers ITs.
 
@@ -24,9 +24,9 @@
 | `app/src/main/resources/application.yml` | `app.verification.public-base-url`, `app.verification.expire-minutes`; `app.mail.verification.*` (subject, greeting, lines, action label, footer lines, salutation, from). |
 | `app/src/test/resources/application-test.yml` | Fixed `public-base-url` (e.g. `https://example.com`) for signer/validator tests. |
 | `app/src/main/java/com/authspring/AuthspringApplication.java` | Register **`VerificationMailProperties`** in `@EnableConfigurationProperties`. |
-| `app/src/main/java/com/authspring/api/security/EmailVerificationHashes.java` | Shared **`sha1Hex(email)`** for path `hash` (same as Laravel `sha1($email)` hex). |
-| `app/src/main/java/com/authspring/api/security/LaravelSignedUrlSigner.java` | Build signed **`GET /api/verify-email/{id}/{hash}?expires=...&signature=...`** using the same HMAC rules as **`LaravelSignedUrlValidator`**. |
-| `app/src/main/java/com/authspring/api/service/EmailVerificationService.java` | Use **`EmailVerificationHashes.sha1Hex`** instead of a private duplicate. |
+| `app/src/main/java/com/authspring/api/security/EmailVerificationHashes.java` | Shared **`sha256Hex(email)`** for path `hash` (SHA-256 digest, lowercase hex). |
+| `app/src/main/java/com/authspring/api/security/LaravelSignedUrlSigner.java` | Build signed **`GET /api/email/verify/{id}/{hash}?expires=...&signature=...`** using the same HMAC rules as **`LaravelSignedUrlValidator`**. |
+| `app/src/main/java/com/authspring/api/service/EmailVerificationService.java` | Use **`EmailVerificationHashes.sha256Hex`** for expected path `hash`. |
 | `app/src/main/java/com/authspring/api/config/VerificationMailProperties.java` | `app.mail.verification` — mirrors  `mail_templates.verification`. |
 | `app/src/main/java/com/authspring/api/service/EmailVerificationMailSender.java` | Send verification email via **`MimeMessageHelper`**, UTF-8, `createMimeMessage()`. |
 | `app/src/main/java/com/authspring/api/service/VerificationNotificationRateLimiter.java` | Max **6** requests per **60s** rolling window per **user id** (in-memory). |
@@ -97,34 +97,39 @@ package com.authspring.api.security;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
+import java.util.Objects;
 
 public final class EmailVerificationHashes {
 
+    private static final HexFormat HEX = HexFormat.of();
+
     private EmailVerificationHashes() {}
 
-    /** Laravel path segment: sha1(email) as lowercase hex. */
-    public static String sha1Hex(String email) {
+    /** {@code SHA-256(email)} as lowercase hex, for {@code GET /api/email/verify/{id}/{hash}}. */
+    public static String sha256Hex(String email) {
+        Objects.requireNonNull(email, "email");
         try {
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-            byte[] d = md.digest(email.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(d);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest(email.getBytes(StandardCharsets.UTF_8));
+            return HEX.formatHex(digest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 MessageDigest not available", e);
         }
     }
 }
 ```
 
-- [ ] **Step 2: In `EmailVerificationService`, remove private `sha1Hex` and use `EmailVerificationHashes.sha1Hex(user.getEmail())`**
+- [ ] **Step 2: In `EmailVerificationService`, remove private digest helper and use `EmailVerificationHashes.sha256Hex(user.getEmail())`**
 
 Replace the `expectedHash` line to:
 
 ```java
-        String expectedHash = EmailVerificationHashes.sha1Hex(user.getEmail());
+        String expectedHash = EmailVerificationHashes.sha256Hex(user.getEmail());
 ```
 
-Delete the private `sha1Hex` method and any now-unused imports (`MessageDigest`, `HexFormat` if unused).
+Delete any duplicate digest helper and now-unused imports.
 
 - [ ] **Step 3: Run tests**
 
@@ -137,7 +142,7 @@ Expected: BUILD SUCCESSFUL
 ```bash
 git add app/src/main/java/com/authspring/api/security/EmailVerificationHashes.java \
   app/src/main/java/com/authspring/api/service/EmailVerificationService.java
-git commit -m "refactor: shared SHA-1 hex for email verification path hash"
+git commit -m "refactor: shared SHA-256 hex for email verification path hash"
 ```
 
 ---
@@ -173,7 +178,7 @@ public class LaravelSignedUrlSigner {
     }
 
     /**
-     * Absolute URL for GET /api/verify-email/{id}/{hash}?expires=...&signature=...
+     * Absolute URL for GET /api/email/verify/{id}/{hash}?expires=...&signature=...
      * that {@link LaravelSignedUrlValidator#hasValidSignature} accepts for the same host/path/query.
      */
     public String buildVerifyEmailUrl(long userId, String email) {
@@ -182,11 +187,11 @@ public class LaravelSignedUrlSigner {
             throw new IllegalStateException("app.verification.signing-key is not set");
         }
         String base = properties.publicBaseUrl().replaceAll("/$", "");
-        String hash = EmailVerificationHashes.sha1Hex(email);
+        String hash = EmailVerificationHashes.sha256Hex(email);
         long expires =
                 Instant.now().getEpochSecond() + properties.expireMinutes() * 60L;
         String originalWithoutSig =
-                base + "/api/verify-email/" + userId + "/" + hash + "?expires=" + expires;
+                base + "/api/email/verify/" + userId + "/" + hash + "?expires=" + expires;
         String sig = hmacSha256Hex(originalWithoutSig, key);
         return originalWithoutSig + "&signature=" + sig;
     }
@@ -845,7 +850,7 @@ git commit -m "test: integration tests for verification notification endpoint"
 
 - **Ops:** Set **`APP_URL`** (or `app.verification.public-base-url`) to the **public API origin** users click from email (must match TLS host and path the browser sends to **`LaravelSignedUrlValidator`**).
 - **Horizontal scale:** In-memory rate limiting is **per instance**; Redis or API gateway throttling is a later improvement.
-- **Laravel `VerifyEmailApi`** uses `temporarySignedRoute(..., false)` then prefixes `app.url`; Authspring signs the **full** URL via `publicBaseUrl` to match **`LaravelSignedUrlValidator`** (same as the existing verify-email plan).
+- **Laravel `VerifyEmailApi`** uses `temporarySignedRoute(..., false)` then prefixes `app.url`; Authspring signs the **full** URL via `publicBaseUrl` to match **`LaravelSignedUrlValidator`**. The **`{hash}`** segment is **SHA-256(hex)** in Authspring (`EmailVerificationHashes.sha256Hex`), not Laravel’s **`sha1($email)`** — links are generated end-to-end by this API (or any client that mirrors the same path and hash rules).
 
 ---
 

@@ -27,7 +27,7 @@ public class LaravelSignedUrlSigner {
             throw new IllegalStateException("app.verification.signing-key is not set");
         }
         String base = properties.publicBaseUrl().replaceAll("/$", "");
-        String hash = EmailVerificationHashes.sha1Hex(email);
+        String hash = EmailVerificationHashes.sha256Hex(email);
         long expires = Instant.now().getEpochSecond() + properties.expireMinutes() * 60L;
         String originalWithoutSig =
                 base + "/api/email/verify/" + userId + "/" + hash + "?expires=" + expires;

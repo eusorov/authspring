@@ -45,7 +45,7 @@ public class EmailVerificationService {
         if (user == null) {
             return new EmailVerificationOutcome.InvalidOrExpiredLink();
         }
-        String expectedHash = EmailVerificationHashes.sha1Hex(user.getEmail());
+        String expectedHash = EmailVerificationHashes.sha256Hex(user.getEmail());
         if (!constantTimeEquals(expectedHash, hash.toLowerCase(Locale.ROOT))) {
             return new EmailVerificationOutcome.InvalidOrExpiredLink();
         }

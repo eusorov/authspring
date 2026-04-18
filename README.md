@@ -97,7 +97,7 @@ All endpoints below require `API-Version: 1`. **`Authorization: Bearer <jwt>`** 
 
 | Method | Path                                      | Auth | Consumes                                       | Purpose                                                        |
 |--------|-------------------------------------------|------|------------------------------------------------|----------------------------------------------------------------|
-| GET    | `/api/email/verify/{id}/{hash}`           | No   | —                                              | Consume a signed Laravel-style verification URL.               |
+| GET    | `/api/email/verify/{id}/{hash}`           | No   | —                                              | Signed URL (`expires`, `signature`); `hash` is SHA-256(email) hex. |
 | POST   | `/api/email/verification-notification` | Yes  | `multipart/form-data`, `x-www-form-urlencoded` | Re-send the verification email for the authenticated user.     |
 
 ### Diagnostics
@@ -173,7 +173,7 @@ All configuration lives in `app/src/main/resources/application.yml` and is overr
 | `MAIL_HOST` / `MAIL_PORT`           | `localhost` / `1025` (Mailpit)                            | Outbound SMTP                                         |
 | `MAIL_FROM_ADDRESS` / `MAIL_FROM_NAME` | `noreply@example.com` / `Team`                         | Envelope sender                                       |
 | `APP_URL`                           | `http://localhost:8080`                                   | Base URL used when signing verification links         |
-| `VERIFICATION_SIGNING_KEY`          | dev-only placeholder                                      | HMAC key for Laravel-compatible signed verify URLs    |
+| `VERIFICATION_SIGNING_KEY`          | dev-only placeholder                                      | HMAC key for signed email verification URLs           |
 | `VERIFICATION_EXPIRE_MINUTES`       | `60`                                                      | Verification URL lifetime                             |
 | `FRONTEND_CORS`                     | `http://localhost:3000`                                   | Allowed SPA origin                                    |
 

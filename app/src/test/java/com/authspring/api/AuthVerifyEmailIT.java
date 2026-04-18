@@ -6,8 +6,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.authspring.api.domain.User;
 import com.authspring.api.repo.UserRepository;
+import com.authspring.api.security.EmailVerificationHashes;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.HexFormat;
 import javax.crypto.Mac;
@@ -63,7 +63,7 @@ class AuthVerifyEmailIT {
         User user = userRepository.findByEmail("ada@example.com").orElseThrow();
         Long id = user.getId();
         String email = user.getEmail();
-        String hash = sha1Hex(email);
+        String hash = EmailVerificationHashes.sha256Hex(email);
         long expires = Instant.now().getEpochSecond() + 3600;
 
         String fullUrl = "http://localhost/api/email/verify/" + id + "/" + hash;
@@ -86,19 +86,13 @@ class AuthVerifyEmailIT {
     void verifyEmailInvalidSignatureReturns403() throws Exception {
         User user = userRepository.findByEmail("ada@example.com").orElseThrow();
         Long id = user.getId();
-        String hash = sha1Hex(user.getEmail());
+        String hash = EmailVerificationHashes.sha256Hex(user.getEmail());
 
         mockMvc.perform(get("/api/email/verify/{id}/{hash}", id, hash)
                         .header(API_VERSION, "1")
                         .queryParam("expires", Long.toString(Instant.now().getEpochSecond() + 3600))
                         .queryParam("signature", "invalid"))
                 .andExpect(status().isForbidden());
-    }
-
-    private static String sha1Hex(String s) throws Exception {
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        byte[] d = md.digest(s.getBytes(StandardCharsets.UTF_8));
-        return HexFormat.of().formatHex(d);
     }
 
     private static String hmacSha256Hex(String data, String key) throws Exception {
