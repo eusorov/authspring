@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco' 
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.dependency.management)
     id 'org.sonarqube' version '7.2.3.7755'
@@ -47,11 +48,24 @@ java {
     }
 }
 
+jacoco {
+    toolVersion = '0.8.14'
+}
+
+tasks.named('jacocoTestReport') {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
 sonar {
     properties {
         property 'sonar.projectKey', 'authspring'
         property 'sonar.organization', 'authspring'
         property 'sonar.host.url', 'http://localhost:9000'
+        property 'sonar.coverage.jacoco.xmlReportPaths', layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.xml').get().asFile.absolutePath.replace('\\', '/')
     }
 }
 

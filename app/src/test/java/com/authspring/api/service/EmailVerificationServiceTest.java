@@ -137,6 +137,6 @@ class EmailVerificationServiceTest {
 
         assertInstanceOf(EmailVerificationOutcome.RedirectToFrontend.class, outcome);
         verify(userRepository, never()).save(any());
-        verify(personalAccessTokenService).recordLoginToken(eq(user), eq("signed-jwt"));
+        verify(personalAccessTokenService).recordLoginToken(user, "signed-jwt");
     }
 }
