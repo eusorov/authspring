@@ -1,0 +1,98 @@
+spring:
+  application:
+    name: authspring
+  datasource:
+    url: jdbc:postgresql://localhost:5432/authspring
+    username: authspring
+    password: authspring
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+jwt:
+  secret: ${JWT_SECRET:change-me-use-at-least-32-bytes-for-hs256-dev-only!!}
+  expiration-ms: 86400000
+  password-reset-expiration-ms: ${JWT_PASSWORD_RESET_EXPIRATION_MS:3600000}
+
+resilience4j:
+  ratelimiter:
+    instances:
+      apiGlobal:
+        limitForPeriod: 300
+        limitRefreshPeriod: 1m
+        timeoutDuration: 5s
+
+app:
+  frontend:
+    base-url: ${FRONTEND_CORS:http://localhost:3000}
+  verification:
+    signing-key: ${VERIFICATION_SIGNING_KEY:anyKeyoCDAFzRlJkgldwQZf5dDnMdL6SsY64sLRM7EU9}
+    public-base-url: ${APP_URL:http://localhost:8080}
+    expire-minutes: ${VERIFICATION_EXPIRE_MINUTES:60}
+  mail:
+    password-reset:
+      subject: ${PASSWORD_RESET_EMAIL_SUBJECT:Reset Your Password}
+      greeting-template: "Hello {name}!"
+      lines:
+        - ${PASSWORD_RESET_EMAIL_LINE_1:You are receiving this email because we received a password reset request for your account.}
+        - ${PASSWORD_RESET_EMAIL_LINE_2:Click the link below to reset your password. You will be redirected to our secure reset page.}
+      action-label: ${PASSWORD_RESET_EMAIL_ACTION:Reset Password}
+      footer-lines:
+        - ${PASSWORD_RESET_EMAIL_FOOTER_1:This password reset link will expire in {minutes} minutes.}
+        - ${PASSWORD_RESET_EMAIL_FOOTER_2:If you did not request a password reset, no further action is required.}
+      salutation: ${PASSWORD_RESET_EMAIL_SALUTATION:Best regards, Team}
+      expiry-minutes: ${PASSWORD_RESET_EMAIL_EXPIRY:60}
+      from-address: ${MAIL_FROM_ADDRESS:noreply@example.com}
+      from-name: ${MAIL_FROM_NAME:Team}
+    verification:
+      subject: ${VERIFICATION_EMAIL_SUBJECT:Verify Your Email Address}
+      greeting-template: ${VERIFICATION_EMAIL_GREETING:Hello Dear {name}!}
+      lines:
+        - ${VERIFICATION_EMAIL_LINE_1:Welcome! Thank you for registering with us.}
+        - ${VERIFICATION_EMAIL_LINE_2:Please click the link below to verify your email address and activate your account.}
+      action-label: ${VERIFICATION_EMAIL_ACTION:Verify Email Address}
+      footer-lines:
+        - ${VERIFICATION_EMAIL_FOOTER_1:This verification link will expire in {minutes} minutes.}
+        - ${VERIFICATION_EMAIL_FOOTER_2:If you did not create an account, no further action is required.}
+      salutation: ${VERIFICATION_EMAIL_SALUTATION:Best regards, Team}
+      expiry-minutes: ${VERIFICATION_EMAIL_EXPIRY:60}
+      from-address: ${MAIL_FROM_ADDRESS:noreply@example.com}
+      from-name: ${MAIL_FROM_NAME:Team}
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG

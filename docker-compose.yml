@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: authspring-postgres
+    # POSTGRES_DB / USER / PASSWORD apply only on first start with an empty data volume.
+    # Override POSTGRES_DB from the host: export POSTGRES_DB=mydb  (or set in a .env file beside this compose file).
+    # If you change it, point Spring at the same DB name (e.g. spring.datasource.url).
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-authspring}
+      POSTGRES_USER: ${POSTGRES_USER:-authspring}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-authspring}
+    ports:
+      - "5432:5432"
+    volumes:
+      - authspring-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Mailpit is a local SMTP server for testing email sending.
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+volumes:
+  authspring-pgdata:
