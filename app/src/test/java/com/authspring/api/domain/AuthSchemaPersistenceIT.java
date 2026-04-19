@@ -51,18 +51,6 @@ class AuthSchemaPersistenceIT {
     }
 
     @Test
-    void passwordReset_roundTrip() {
-        PasswordResetId id = new PasswordResetId("u@example.com", "tok");
-        PasswordReset row = new PasswordReset(id, Instant.parse("2025-06-01T12:00:00Z"));
-        entityManager.persist(row);
-        entityManager.flush();
-        entityManager.clear();
-
-        PasswordReset loaded = entityManager.find(PasswordReset.class, id);
-        assertThat(loaded.getCreatedAt()).isEqualTo(Instant.parse("2025-06-01T12:00:00Z"));
-    }
-
-    @Test
     void passwordResetToken_roundTrip() {
         PasswordResetToken prt = new PasswordResetToken(
                 "u@example.com", "secret", Instant.parse("2025-06-02T08:00:00Z"));
