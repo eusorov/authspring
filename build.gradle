@@ -35,3 +35,17 @@ tasks.register('sonarLocal') {
     description = 'Run tests, JaCoCo report, and publish analysis to local SonarQube (:app:sonar)'
     dependsOn ':app:sonar'
 }
+
+/** GET open issues as JSON; {@code projectKeys} is {@code rootProject.name} (same as Sonar {@code sonar.projectKey} in {@code app/build.gradle}). Auth: {@code SONAR_TOKEN}. */
+tasks.register('sonarFetchOpenIssues', Exec) {
+    group = 'verification'
+    description = "Fetch open SonarQube issues for project '${rootProject.name}' (api/issues/search; curl; JSON on stdout)"
+    def sonarProjectKey = rootProject.name
+    def tokenFromDotenv = rootProject.env.fetchOrNull('SONAR_TOKEN')
+    def token = System.getenv('SONAR_TOKEN') ?: tokenFromDotenv
+    if (token == null || token.isBlank()) {
+        throw new GradleException('SONAR_TOKEN is not set (export it or add to repo-root .env)')
+    }
+    def url = "http://localhost:9000/api/issues/search?projectKeys=${sonarProjectKey}&ps=500&p=1&statuses=OPEN"
+    commandLine('curl', '-sS', '-f', '-u', "${token}:", url, '--output', 'open-issues.json')
+}

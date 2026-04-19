@@ -6,6 +6,7 @@
 
 # Ignore Gradle build output directory
 build
+open-issues.json
 
 # Ignore Kotlin plugin data
 .kotlin
