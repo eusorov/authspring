@@ -30,7 +30,7 @@ public class EmailVerificationNotificationController {
     @PostMapping(
             value = "/email/verification-notification",
             consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<?> store(@AuthenticationPrincipal UserPrincipal principal) {
+    public ResponseEntity<Object> store(@AuthenticationPrincipal UserPrincipal principal) {
         return switch (notificationService.send(principal)) {
             case EmailVerificationNotificationOutcome.AlreadyVerified() ->
                     ResponseEntity.status(HttpStatus.CONFLICT)

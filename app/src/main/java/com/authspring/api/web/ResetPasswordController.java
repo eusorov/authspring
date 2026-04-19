@@ -34,7 +34,7 @@ public class ResetPasswordController {
     @PostMapping(
             value = "/reset-password",
             consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<?> store(@Valid @ModelAttribute ResetPasswordRequest request) {
+    public ResponseEntity<Object> store(@Valid @ModelAttribute ResetPasswordRequest request) {
         return switch (passwordResetService.reset(request)) {
             case PasswordResetOutcome.Success() -> ResponseEntity.ok(Map.of("status", "Your password has been reset."));
             case PasswordResetOutcome.UserNotFound() -> ResponseEntity.status(HttpStatusCode.valueOf(422))

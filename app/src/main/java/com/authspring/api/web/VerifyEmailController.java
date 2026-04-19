@@ -22,7 +22,7 @@ public class VerifyEmailController {
     }
 
     @GetMapping("/email/verify/{id}/{hash}")
-    public ResponseEntity<?> verify(
+    public ResponseEntity<Object> verify(
             HttpServletRequest request, @PathVariable Long id, @PathVariable String hash) {
         return switch (emailVerificationService.verify(request, id, hash)) {
             case EmailVerificationOutcome.RedirectToFrontend(var url) ->

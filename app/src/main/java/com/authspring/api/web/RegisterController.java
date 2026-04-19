@@ -35,7 +35,7 @@ public class RegisterController {
     @PostMapping(
             value = "/register",
             consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<?> store(@Valid @ModelAttribute RegisterRequest request) {
+    public ResponseEntity<Object> store(@Valid @ModelAttribute RegisterRequest request) {
         return switch (registerService.register(request)) {
             case RegistrationOutcome.Registered(var response) -> ResponseEntity.ok(response);
             case RegistrationOutcome.EmailAlreadyTaken() -> ResponseEntity.status(HttpStatusCode.valueOf(422))

@@ -1,5 +1,6 @@
 package com.authspring.api.security;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -38,7 +39,7 @@ class LaravelSignedUrlValidatorTest {
     }
 
     @Test
-    void wrongSignatureRejected() throws Exception {
+    void wrongSignatureRejected() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setScheme("https");
         request.setServerName("example.com");
@@ -53,9 +54,9 @@ class LaravelSignedUrlValidatorTest {
 
     @Test
     void stripSignatureParameter_removesSignatureByName() {
-        assertTrue(
-                LaravelSignedUrlValidator.stripSignatureParameter("expires=1&signature=abc")
-                        .equals("expires=1"));
+        assertEquals(
+                "expires=1",
+                LaravelSignedUrlValidator.stripSignatureParameter("expires=1&signature=abc"));
     }
 
     private static String hmacSha256Hex(String data, String key) throws Exception {

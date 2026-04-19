@@ -66,7 +66,7 @@ public class LaravelSignedUrlValidator {
         try {
             long ts = Long.parseLong(exp);
             return Instant.now().getEpochSecond() <= ts;
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             return false;
         }
     }

@@ -26,8 +26,7 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             JwtAuthenticationFilter jwtAuthenticationFilter,
-            ProblemJsonAuthenticationEntryPoint authenticationEntryPoint)
-            throws Exception {
+            ProblemJsonAuthenticationEntryPoint authenticationEntryPoint) {
         http.csrf(csrf -> csrf.disable());
         http.cors(Customizer.withDefaults());
         http.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

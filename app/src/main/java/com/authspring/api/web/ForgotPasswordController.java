@@ -28,7 +28,7 @@ public class ForgotPasswordController {
     @PostMapping(
             value = "/forgot-password",
             consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<?> store(@Valid @ModelAttribute ForgotPasswordRequest request) {
+    public ResponseEntity<Object> store(@Valid @ModelAttribute ForgotPasswordRequest request) {
         return switch (passwordResetLinkService.send(request)) {
             case SendPasswordResetLinkOutcome.Sent() -> ResponseEntity.ok(
                     Map.of("status", "We have e-mailed your password reset link!"));

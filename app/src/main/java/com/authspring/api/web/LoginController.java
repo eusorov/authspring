@@ -36,7 +36,7 @@ public class LoginController {
      * semantics; 422 {@link ProblemDetail} with extension {@code errors} on failure.
      */
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> loginJson(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<Object> loginJson(@Valid @RequestBody LoginRequest request) {
         return loginResult(request);
     }
 
@@ -46,11 +46,11 @@ public class LoginController {
     @PostMapping(
             value = "/login",
             consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<?> loginForm(@Valid @ModelAttribute LoginRequest request) {
+    public ResponseEntity<Object> loginForm(@Valid @ModelAttribute LoginRequest request) {
         return loginResult(request);
     }
 
-    private ResponseEntity<?> loginResult(LoginRequest request) {
+    private ResponseEntity<Object> loginResult(LoginRequest request) {
         LoginResponse response = sessionService.login(request);
         if (response == null) {
             return ResponseEntity.status(HttpStatusCode.valueOf(422)).body(invalidLoginProblemDetail());
