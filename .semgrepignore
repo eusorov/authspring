@@ -1,0 +1,12 @@
+# Gradle / IDE
+.gradle/
+**/.gradle/
+**/build/
+**/out/
+.kotlin/
+
+# Generated / deps
+**/node_modules/
+
+# Large or non-source trees (adjust if you add Semgrep rules under docs/)
+docs/superpowers/

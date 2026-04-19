@@ -1,0 +1,15 @@
+/**
+ * Root aggregator: Semgrep runs from repo root (CLI on PATH).
+ * Install: brew install semgrep
+ */
+tasks.register('semgrep', Exec) {
+    group = 'verification'
+    description = 'Run Semgrep (Java + secrets rule packs; --metrics off)'
+    workingDir = rootDir
+    commandLine(
+            'semgrep', 'scan',
+            '--metrics', 'off',
+            '--config', 'p/java',
+            '--config', 'p/secrets',
+            'app/src')
+}
