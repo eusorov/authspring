@@ -1,3 +1,7 @@
+plugins {
+    alias(libs.plugins.dotenv)
+}
+
 /**
  * Root aggregator: Semgrep runs from repo root (CLI on PATH).
  * Install: brew install semgrep
@@ -12,4 +16,22 @@ tasks.register('semgrep', Exec) {
             '--config', 'p/java',
             '--config', 'p/secrets',
             'app/src')
+}
+
+/** SpotBugs (FindBugs successor) on main + test bytecode, Semgrep on sources, then local SonarQube. */
+tasks.register('analyzeCode') {
+    group = 'verification'
+    description = 'Run SpotBugs, Semgrep, and sonarLocal (tests + JaCoCo + Sonar)'
+    dependsOn ':app:spotbugsMain', ':app:spotbugsTest', 'semgrep', 'sonarLocal'
+}
+
+/**
+ * Local SonarQube analysis. Start a server (e.g. Docker) on {@code http://localhost:9000},
+ * log in, create a user token, put {@code SONAR_TOKEN=...} in repo-root {@code .env} (or export it), then run {@code ./gradlew sonarLocal}.
+ * Host URL and project key are configured in {@code app/build.gradle} ({@code sonar {}} block).
+ */
+tasks.register('sonarLocal') {
+    group = 'verification'
+    description = 'Run tests, JaCoCo report, and publish analysis to local SonarQube (:app:sonar)'
+    dependsOn ':app:sonar'
 }

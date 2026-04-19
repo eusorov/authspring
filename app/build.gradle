@@ -61,13 +61,22 @@ tasks.named('jacocoTestReport') {
     }
 }
 
+def sonarToken = System.getenv('SONAR_TOKEN') ?: env.fetchOrNull('SONAR_TOKEN')
+
 sonar {
     properties {
         property 'sonar.projectKey', 'authspring'
         property 'sonar.organization', 'authspring'
         property 'sonar.host.url', 'http://localhost:9000'
         property 'sonar.coverage.jacoco.xmlReportPaths', layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.xml').get().asFile.absolutePath.replace('\\', '/')
+        if (sonarToken) {
+            property 'sonar.token', sonarToken
+        }
     }
+}
+
+tasks.named('sonar') {
+    dependsOn tasks.named('jacocoTestReport')
 }
 
 tasks.named('test') {

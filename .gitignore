@@ -1,3 +1,6 @@
+# Local secrets (e.g. SONAR_TOKEN for ./gradlew sonarLocal)
+.env
+
 # Ignore Gradle project-specific cache directory
 .gradle
 
