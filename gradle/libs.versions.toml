@@ -3,6 +3,7 @@ guava = "33.4.6-jre"
 junit-jupiter = "5.12.1"
 spring-boot = "4.0.5"
 resilience4j = "2.4.0"
+spotbugs-plugin = "6.5.0"
 
 [libraries]
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
@@ -12,3 +13,4 @@ resilience4j-spring-boot4 = { module = "io.github.resilience4j:resilience4j-spri
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 dependency-management = { id = "io.spring.dependency-management", version = "1.1.7" }
+spotbugs = { id = "com.github.spotbugs", version.ref = "spotbugs-plugin" }

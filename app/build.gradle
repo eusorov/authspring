@@ -1,8 +1,9 @@
 plugins {
     id 'java'
-    id 'jacoco' 
+    id 'jacoco'
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.dependency.management)
+    alias(libs.plugins.spotbugs)
     id 'org.sonarqube' version '7.2.3.7755'
 }
 
@@ -71,6 +72,31 @@ sonar {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+spotbugs {
+    ignoreFailures = false
+    excludeFilter = file('spotbugs-exclude.xml')
+}
+
+tasks.named('spotbugsMain') {
+    group = 'verification'
+    reports.configure {
+        html.required = true
+        xml.required = true
+    }
+}
+
+tasks.named('spotbugsTest') {
+    group = 'verification'
+    reports.configure {
+        html.required = true
+        xml.required = true
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('spotbugsMain'), tasks.named('spotbugsTest')
 }
 
 tasks.named('jar') {

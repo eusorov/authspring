@@ -13,4 +13,10 @@ public record PasswordResetMailProperties(
         String salutation,
         int expiryMinutes,
         String fromAddress,
-        String fromName) {}
+        String fromName) {
+
+    public PasswordResetMailProperties {
+        lines = lines == null ? List.of() : List.copyOf(lines);
+        footerLines = footerLines == null ? List.of() : List.copyOf(footerLines);
+    }
+}

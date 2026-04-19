@@ -13,4 +13,10 @@ public record VerificationMailProperties(
         String salutation,
         int expiryMinutes,
         String fromAddress,
-        String fromName) {}
+        String fromName) {
+
+    public VerificationMailProperties {
+        lines = lines == null ? List.of() : List.copyOf(lines);
+        footerLines = footerLines == null ? List.of() : List.copyOf(footerLines);
+    }
+}
