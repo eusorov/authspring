@@ -47,8 +47,6 @@ public class PersonalAccessToken {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
-    /** JPA and {@link com.authspring.api.service.PersonalAccessTokenService}. */
-    public PersonalAccessToken() {}
 
     public Long getId() {
         return id;

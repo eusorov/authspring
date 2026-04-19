@@ -10,6 +10,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.HexFormat;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,10 +26,16 @@ public class PersonalAccessTokenService {
 
     private final PersonalAccessTokenRepository repository;
     private final JwtProperties jwtProperties;
+    /** Spring proxy for same-class {@link Transactional} calls (not {@code this}). */
+    private final PersonalAccessTokenService self;
 
-    public PersonalAccessTokenService(PersonalAccessTokenRepository repository, JwtProperties jwtProperties) {
+    public PersonalAccessTokenService(
+            PersonalAccessTokenRepository repository,
+            JwtProperties jwtProperties,
+            @Lazy PersonalAccessTokenService self) {
         this.repository = repository;
         this.jwtProperties = jwtProperties;
+        this.self = self;
     }
 
     @Transactional
@@ -61,7 +68,7 @@ public class PersonalAccessTokenService {
         if (raw.isEmpty()) {
             return;
         }
-        revokeByJwtCompact(raw);
+        self.revokeByJwtCompact(raw);
     }
 
     @Transactional
